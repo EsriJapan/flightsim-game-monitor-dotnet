@@ -1,0 +1,106 @@
+﻿<Page x:Name="pageRoot"
+      x:Class="FlightSimMonitor.MapPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:FlightSimMonitor.Views"
+      xmlns:common="using:FlightSimMonitor.Common"
+      xmlns:esriControls="using:Esri.ArcGISRuntime.Controls"
+      xmlns:esriLayers="using:Esri.ArcGISRuntime.Layers"
+      xmlns:esriSymbology="using:Esri.ArcGISRuntime.Symbology"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+    <Page.Resources>
+        <!--青ラベル シンボル-->
+        <esriSymbology:TextSymbol x:Key="blueTextSymbol" Color="Blue" BorderLineColor="LightBlue" BorderLineSize="1">
+            <esriSymbology:SymbolFont FontFamily="Meiryo" FontSize="12.0" FontWeight="Bold" FontStyle="Normal" TextDecoration="None" />
+        </esriSymbology:TextSymbol>
+        <!--赤ラベル シンボル-->
+        <esriSymbology:TextSymbol x:Key="redTextSymbol" Color="Red" BorderLineColor="LightPink" BorderLineSize="1">
+            <esriSymbology:SymbolFont FontFamily="Meiryo" FontSize="12.0" FontWeight="Bold" FontStyle="Normal" TextDecoration="None" />
+        </esriSymbology:TextSymbol>
+    </Page.Resources>
+    
+    <!--トップ アプリケーションバー-->
+    <Page.TopAppBar>
+        <AppBar>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <!--リフレッシュ ボタン-->
+                    <AppBarButton x:Name="_refreshButton" HorizontalAlignment="Stretch" Icon="Refresh" Label="リフレッシュ" VerticalAlignment="Stretch" Click="_refreshButton_Click"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
+                    <!--接続 ボタン-->
+                    <AppBarButton x:Name="_linkButton" HorizontalAlignment="Stretch" Icon="Link" Label="接続" VerticalAlignment="Stretch" Click="_linkButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </AppBar>
+    </Page.TopAppBar>
+    
+    <!--メイン画面-->
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="300" />
+        </Grid.ColumnDefinitions>
+        <!--マップ-->
+        <esriControls:MapView x:Name="_mapView" Grid.Column="0" Loaded="_mapView_Loaded">
+            <esriControls:Map>
+                <!--背景-->
+                <esriLayers:ArcGISTiledMapServiceLayer ID="backgrouhd" ServiceUri="http://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer" />
+                <!--ジオフェンス レイヤの URL を指定します-->
+                <esriLayers:ArcGISDynamicMapServiceLayer ID="gFenceLayer" ServiceUri="http://localhost/arcgis/rest/services/geoevent_move/wsflight/MapServer" Opacity="0.5" />
+                <!--飛行機レイヤ-->
+                <esriLayers:GraphicsLayer ID="flights">
+                    <esriLayers:GraphicsLayer.Labeling>
+                        <esriLayers:LabelProperties IsEnabled="True">
+                            <esriLayers:AttributeLabelClassCollection>
+                                <!--青飛行機ラベル-->
+                                <esriLayers:AttributeLabelClass Symbol="{StaticResource blueTextSymbol}" 
+                                                                DuplicateLabels="PreserveDuplicates"
+                                                                LabelPlacement="PointAboveRight"                                                                
+                                                                LabelPosition="FixedPositionWithOverlaps"
+                                                                LabelPriority="Highest"
+                                                                TextExpression="[name] CONCAT &quot; ( &quot; CONCAT [tscore] CONCAT &quot; pt )&quot;"
+                                                                WhereClause="selected=0" />
+                                <!--赤飛行機ラベル-->
+                                <esriLayers:AttributeLabelClass Symbol="{StaticResource redTextSymbol}" 
+                                                                DuplicateLabels="PreserveDuplicates"
+                                                                LabelPlacement="PointAboveRight"                                                                
+                                                                LabelPosition="FixedPositionWithOverlaps"
+                                                                LabelPriority="Highest"
+                                                                TextExpression="[name] CONCAT &quot; ( &quot; CONCAT [tscore] CONCAT &quot; pt )&quot;"
+                                                                WhereClause="selected=1" />
+                            </esriLayers:AttributeLabelClassCollection>
+                        </esriLayers:LabelProperties>
+                    </esriLayers:GraphicsLayer.Labeling>
+                </esriLayers:GraphicsLayer>
+            </esriControls:Map>
+        </esriControls:MapView>
+        <Grid Grid.Column="1">
+            <!--スコア ランキング-->
+            <ListView x:Name="_rankListView" Margin="10" SelectionChanged="_rankListView_SelectionChanged">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="#77777777" BorderThickness="2" CornerRadius="5" Width="240" Margin="3" Padding="3" HorizontalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="{Binding SymbolPath}" Height="24" Width="24" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3,0,0,0" />
+                                <StackPanel Orientation="Vertical" Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                        <TextBlock Text="{Binding TScore}" FontSize="14" FontWeight="Bold" />
+                                        <TextBlock Text=" ポイント" FontSize="14" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>
